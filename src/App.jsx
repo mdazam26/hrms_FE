@@ -7,7 +7,9 @@ import Employees from "./pages/Employees";
 import CreateEmployee from "./pages/CreateEmployee";
 import SuperAdmin from "./pages/SuperAdmin";
 import Profile from "./pages/Profile";
-import Header from "./components/Header";   // ✅ now exists
+import Header from "./components/Header";   
+import EmployeeDetails from "./pages/EmployeeDetails";
+import { canManageEmployees, canUseProfileApi } from "./auth/roles";
 
 function App() {
   const { user, loading } = useAuth();
@@ -25,7 +27,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Dashboard />} />
 
-        {(user.role === "HR" || user.role === "TENANT") && (
+        {canManageEmployees(user.role) && (
           <>
             <Route path="/employees" element={<Employees />} />
             <Route path="/employees/create" element={<CreateEmployee />} />
@@ -36,11 +38,14 @@ function App() {
           <Route path="/super-admin" element={<SuperAdmin />} />
         )}
 
-        {(user.role === "EMPLOYEE" || user.role === "HR") && (
+        {canUseProfileApi(user.role) && (
           <Route path="/profile" element={<Profile />} />
         )}
 
+        <Route path="/employees/:id" element={<EmployeeDetails />} />
+
         <Route path="*" element={<Navigate to="/" />} />
+
       </Routes>
     </>
   );

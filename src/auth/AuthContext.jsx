@@ -8,10 +8,16 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   // 🔹 Derived role flags (AUTO update when user changes)
-  const isHR = user?.role === "HR";
-  const isTenant = user?.role === "TENANT";
-  const isSuperAdmin = user?.role === "SUPER_ADMIN";
-  const isEmployee = user?.role === "EMPLOYEE";
+const role = user?.role;
+
+const isSuperAdmin = role === "SUPER_ADMIN";
+const isTenant = role === "TENANT";
+const isAdmin = role === "ADMIN";
+const isHR = role === "HR";
+
+// Employee-level roles = everything except SUPER_ADMIN & TENANT
+const isEmployeeLevel =
+  role && !["SUPER_ADMIN", "TENANT"].includes(role);
 
   const loadSession = async () => {
     try {
@@ -41,17 +47,15 @@ export const AuthProvider = ({ children }) => {
       value={{
         user,
         loading,
-
-        // expose setters / actions
         setUser,
         reloadSession: loadSession,
         logout,
 
-        // 🔥 expose role helpers
-        isHR,
-        isTenant,
         isSuperAdmin,
-        isEmployee,
+        isTenant,
+        isAdmin,
+        isHR,
+        isEmployeeLevel,
       }}
     >
       {children}

@@ -1,21 +1,23 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createEmployeeApi } from "../api/employeeApi";
+import { useAuth } from "../auth/AuthContext";
 
 const CreateEmployee = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
     officialEmail: "",
-    role: "EMPLOYEE",
+    role: 3, // default EMPLOYEE roleId
 
     designation: "",
     department: "",
     employmentType: "FULL_TIME",
 
-    dateOfJoining: "",        // REQUIRED (LocalDate)
+    dateOfJoining: "",
     workLocation: "",
 
     gender: "Male",
@@ -23,18 +25,25 @@ const CreateEmployee = () => {
 
     nationality: "Indian",
 
-    personalMobile: "",       // REQUIRED (10 digits)
+    personalMobile: "",
     personalEmail: "",
 
-    panNumber: "",            // REQUIRED
-    aadhaarNumber: "",        // REQUIRED
+    panNumber: "",
+    aadhaarNumber: "",
 
     salary: 0,
     password: "1234",
+
+    reportingManagerId: "",
   });
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    setForm({
+      ...form,
+      [name]: name === "role" ? Number(value) : value,
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -43,14 +52,13 @@ const CreateEmployee = () => {
     try {
       await createEmployeeApi({
         ...form,
-        salary: Number(form.salary),   // ensure number
+        salary: Number(form.salary),
       });
 
-      // ✅ Redirect back to list
       navigate("/employees");
     } catch (err) {
       console.error("Create employee failed", err);
-      alert("Validation failed. Please fill all required fields.");
+      alert("Validation failed. Please check all required fields.");
     }
   };
 
@@ -59,40 +67,33 @@ const CreateEmployee = () => {
       <h2>Create Employee</h2>
 
       <form onSubmit={handleSubmit}>
-        {/* BASIC */}
         <input name="firstName" placeholder="First Name" required onChange={handleChange} />
         <input name="lastName" placeholder="Last Name" required onChange={handleChange} />
         <input name="officialEmail" placeholder="Official Email" required onChange={handleChange} />
 
-        {/* WORK */}
         <input name="designation" placeholder="Designation" required onChange={handleChange} />
         <input name="department" placeholder="Department" required onChange={handleChange} />
         <input name="workLocation" placeholder="Work Location" required onChange={handleChange} />
+
         <label>Role</label>
         <select name="role" value={form.role} onChange={handleChange}>
-          <option value="EMPLOYEE">EMPLOYEE</option>
-          <option value="HR">HR</option>
+          {/* ADMIN only visible to TENANT & ADMIN */}
+          {(user.role === "TENANT" || user.role === "ADMIN") && (
+            <option value={1}>ADMIN</option>
+          )}
+          <option value={2}>HR</option>
+          <option value={3}>EMPLOYEE</option>
         </select>
 
         <label>Date of Joining</label>
-        <input
-          type="date"
-          name="dateOfJoining"
-          required
-          onChange={handleChange}
-        />
+        <input type="date" name="dateOfJoining" required onChange={handleChange} />
 
-        {/* PERSONAL */}
         <label>Date of Birth</label>
-        <input
-          type="date"
-          name="dateOfBirth"
-          onChange={handleChange}
-        />
+        <input type="date" name="dateOfBirth" onChange={handleChange} />
 
         <input
           name="personalMobile"
-          placeholder="Personal Mobile (10 digits)"
+          placeholder="Personal Mobile"
           required
           pattern="\d{10}"
           onChange={handleChange}
@@ -104,27 +105,14 @@ const CreateEmployee = () => {
           onChange={handleChange}
         />
 
-        {/* IDENTITY (CRITICAL) */}
-        <input
-          name="panNumber"
-          placeholder="PAN Number"
-          required
-          onChange={handleChange}
-        />
+        <input name="panNumber" placeholder="PAN Number" required onChange={handleChange} />
+        <input name="aadhaarNumber" placeholder="Aadhaar Number" required onChange={handleChange} />
+
+        <input type="number" name="salary" placeholder="Salary" required onChange={handleChange} />
 
         <input
-          name="aadhaarNumber"
-          placeholder="Aadhaar Number"
-          required
-          onChange={handleChange}
-        />
-
-        {/* SALARY */}
-        <input
-          type="number"
-          name="salary"
-          placeholder="Salary"
-          required
+          name="reportingManagerId"
+          placeholder="Reporting Manager ID"
           onChange={handleChange}
         />
 

@@ -17,7 +17,13 @@ const Login = () => {
     try {
         await loginApi(email, password);
         await reloadSession();
-        navigate("/");   // ✅ redirect to dashboard
+
+        // without cookie
+        // const res = await loginApi(email, password);
+        // localStorage.setItem("token", res.data.data.token);
+        // await reloadSession();
+
+        navigate("/");   
     } catch (err) {
         setError("Invalid credentials");
     }
