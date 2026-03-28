@@ -19,24 +19,26 @@ const isHR = role === "HR";
 const isEmployeeLevel =
   role && !["SUPER_ADMIN", "TENANT"].includes(role);
 
-  const loadSession = async () => {
-    try {
-      const res = await meApi();
-      setUser(res.data.data);
-    } catch (err) {
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  };
+const loadSession = async () => {
+  try {
+    const res = await meApi();
+    setUser(res.data.data);
+  } catch (err) {
+    localStorage.removeItem("token"); // 🔥 auto cleanup
+    setUser(null);
+  } finally {
+    setLoading(false);
+  }
+};
 
-  const logout = async () => {
-    try {
-      await logoutApi();
-    } finally {
-      setUser(null);
-    }
-  };
+const logout = async () => {
+  try {
+    await logoutApi();
+  } finally {
+    localStorage.removeItem("token"); 
+    setUser(null);
+  }
+};
 
   useEffect(() => {
     loadSession();

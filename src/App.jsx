@@ -7,8 +7,10 @@ import Employees from "./pages/Employees";
 import CreateEmployee from "./pages/CreateEmployee";
 import SuperAdmin from "./pages/SuperAdmin";
 import Profile from "./pages/Profile";
-import Header from "./components/Header";   
+import Header from "./components/Header";
 import EmployeeDetails from "./pages/EmployeeDetails";
+import ProtectedRoute from "./components/ProtectedRoute";
+
 import { canManageEmployees, canUseProfileApi } from "./auth/roles";
 
 function App() {
@@ -16,36 +18,80 @@ function App() {
 
   if (loading) return <div>Loading session...</div>;
 
-  if (!user) {
-    return <Login />;
-  }
-
   return (
     <>
-      <Header />
+      {/* ✅ Show header only if logged in */}
+      {user && <Header />}
 
       <Routes>
-        <Route path="/" element={<Dashboard />} />
+        {/* 🔓 Public Route */}
+        <Route path="/login" element={<Login />} />
 
-        {canManageEmployees(user.role) && (
+        {/* 🔒 Protected Routes */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {user && canManageEmployees(user.role) && (
           <>
-            <Route path="/employees" element={<Employees />} />
-            <Route path="/employees/create" element={<CreateEmployee />} />
+            <Route
+              path="/employees"
+              element={
+                <ProtectedRoute>
+                  <Employees />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/employees/create"
+              element={
+                <ProtectedRoute>
+                  <CreateEmployee />
+                </ProtectedRoute>
+              }
+            />
           </>
         )}
 
-        {user.role === "SUPER_ADMIN" && (
-          <Route path="/super-admin" element={<SuperAdmin />} />
+        {user && user.role === "SUPER_ADMIN" && (
+          <Route
+            path="/super-admin"
+            element={
+              <ProtectedRoute>
+                <SuperAdmin />
+              </ProtectedRoute>
+            }
+          />
         )}
 
-        {canUseProfileApi(user.role) && (
-          <Route path="/profile" element={<Profile />} />
+        {user && canUseProfileApi(user.role) && (
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
         )}
 
-        <Route path="/employees/:id" element={<EmployeeDetails />} />
+        <Route
+          path="/employees/:id"
+          element={
+            <ProtectedRoute>
+              <EmployeeDetails />
+            </ProtectedRoute>
+          }
+        />
 
-        <Route path="*" element={<Navigate to="/" />} />
-
+        {/* 🔁 Redirect unknown routes */}
+        <Route path="*" element={<Navigate to={user ? "/" : "/login"} />} />
       </Routes>
     </>
   );
