@@ -15,7 +15,6 @@ import react from '@vitejs/plugin-react-swc'
       port: 5173,
       changeOrigin: true,
       secure: false,
-      https:true
     },
   });
 
