@@ -8,20 +8,20 @@ import axios from "axios";
 
 
 // for without cookie
-// const http = axios.create({
-//   baseURL: "https://ems-main-5p6r.onrender.com", 
-// });
+const http = axios.create({
+  baseURL: "https://ems-main-5p6r.onrender.com", 
+});
 
-// // 🔥 attach token in every request
-// http.interceptors.request.use((config) => {
-//   const token = localStorage.getItem("token");
+// 🔥 attach token in every request
+http.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
   
-//   if (token) {
-//     config.headers.Authorization = `Bearer ${token}`;
-//   }
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
 
-//   return config;
-// });
+  return config;
+});
 
 
 //for prod------
@@ -37,10 +37,10 @@ import axios from "axios";
 // });
 
 //for render2------
-const http = axios.create({
-  baseURL: "https://ems-main-5p6r.onrender.com/",
-  withCredentials: true,
-});
+// const http = axios.create({
+//   baseURL: "https://ems-main-5p6r.onrender.com/",
+//   withCredentials: true,
+// });
 
 
 

@@ -15,13 +15,13 @@ const Login = () => {
     setError("");
 
     try {
-        await loginApi(email, password);
-        await reloadSession();
+        // await loginApi(email, password);
+        // await reloadSession();
 
         // without cookie
-        // const res = await loginApi(email, password);
-        // localStorage.setItem("token", res.data.data.token);
-        // await reloadSession();
+        const res = await loginApi(email, password);
+        localStorage.setItem("token", res.data.data.token);
+        await reloadSession();
 
         navigate("/");   
     } catch (err) {
