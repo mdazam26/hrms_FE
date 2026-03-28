@@ -37,7 +37,7 @@ const Employees = () => {
       const data = res.data.data.content;
       setEmployees(data);
 
-      // ✅ Load photos using axios (Bearer token)
+      // ✅ Load photos ONLY when they exist
       await loadPhotos(data);
 
     } catch (err) {
@@ -53,14 +53,15 @@ const Employees = () => {
 
     await Promise.all(
       employeesList.map(async (emp) => {
-        if (!emp.employeeId) return;
+        // ✅ ONLY call API if photo exists
+        if (!emp.employeeId || !emp.profilePhotoPath) return;
 
         try {
           const res = await getProfilePhotoApi(emp.employeeId);
           const url = URL.createObjectURL(res.data);
           photoMap[emp.employeeId] = url;
         } catch {
-          // ignore if no photo
+          // ignore silently
         }
       })
     );

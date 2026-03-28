@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
-import { getMyProfileApi, updateProfilePhotoApi } from "../api/employeeApi";
+import {
+  getMyProfileApi,
+  updateProfilePhotoApi,
+  getProfilePhotoApi,
+} from "../api/employeeApi";
 import { useAuth } from "../auth/AuthContext";
 
 const Profile = () => {
@@ -18,36 +22,35 @@ const Profile = () => {
     loadProfile();
   }, []);
 
+  // ✅ cleanup blob URL (prevent memory leak)
+  useEffect(() => {
+    return () => {
+      if (photoUrl) {
+        URL.revokeObjectURL(photoUrl);
+      }
+    };
+  }, [photoUrl]);
+
   const loadProfile = async () => {
     try {
       const res = await getMyProfileApi();
       const data = res.data.data;
+
       setProfile(data);
 
-      // 🔥 Fetch image properly with credentials
-      if (data.profilePhotoUrl) {
+      // ✅ ONLY call API if photo actually exists
+      if (data.profilePhotoPath && data.employeeId) {
         try {
-              const imageRes = await fetch(
-      data.profilePhotoUrl,
-      {
-        credentials: "include",
-      }
-    );
-
-
-          if (imageRes.ok) {
-            const blob = await imageRes.blob();
-            const objectUrl = URL.createObjectURL(blob);
-            setPhotoUrl(objectUrl);
-          } else {
-            setPhotoUrl(null);
-          }
+          const imgRes = await getProfilePhotoApi(data.employeeId);
+          const url = URL.createObjectURL(imgRes.data);
+          setPhotoUrl(url);
         } catch {
           setPhotoUrl(null);
         }
       } else {
         setPhotoUrl(null);
       }
+
     } catch (err) {
       console.error("Failed to load profile", err);
       alert("Failed to load profile");
@@ -77,7 +80,7 @@ const Profile = () => {
 
       alert("Profile photo updated successfully");
 
-      await loadProfile(); // reload everything
+      await loadProfile(); // reload profile + image
     } catch (err) {
       console.error(err);
       alert("Failed to upload photo");
