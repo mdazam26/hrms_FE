@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getAllEmployeesPaginatedApi } from "../api/employeeApi";
+import {
+  getAllEmployeesPaginatedApi,
+  getProfilePhotoApi,
+} from "../api/employeeApi";
 
 const Employees = () => {
   const [employees, setEmployees] = useState([]);
@@ -13,6 +16,15 @@ const Employees = () => {
     loadEmployees();
   }, [page]);
 
+  // ✅ Cleanup old blob URLs (prevent memory leaks)
+  useEffect(() => {
+    return () => {
+      Object.values(photos).forEach((url) => {
+        URL.revokeObjectURL(url);
+      });
+    };
+  }, [photos]);
+
   const loadEmployees = async () => {
     try {
       setLoading(true);
@@ -20,43 +32,40 @@ const Employees = () => {
       const res = await getAllEmployeesPaginatedApi({
         page,
         size,
-        // Optional filters:
-        // employmentStartDate: "",
-        // status: "",
-        // roleId: "",
       });
 
-      const data = res.data.data.content; // Spring pageable structure
+      const data = res.data.data.content;
       setEmployees(data);
 
-      // 🔥 Load profile photos
-      data.forEach(async (emp) => {
-        if (emp.profilePhotoUrl) {
-          try {
-            const imageRes = await fetch(emp.profilePhotoUrl, {
-              credentials: "include",
-            });
+      // ✅ Load photos using axios (Bearer token)
+      await loadPhotos(data);
 
-            if (imageRes.ok) {
-              const blob = await imageRes.blob();
-              const objectUrl = URL.createObjectURL(blob);
-
-              setPhotos((prev) => ({
-                ...prev,
-                [emp.employeeId]: objectUrl,
-              }));
-            }
-          } catch {
-            // ignore silently
-          }
-        }
-      });
     } catch (err) {
       console.error("Failed to load employees", err);
       alert("Failed to load employees");
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadPhotos = async (employeesList) => {
+    const photoMap = {};
+
+    await Promise.all(
+      employeesList.map(async (emp) => {
+        if (!emp.employeeId) return;
+
+        try {
+          const res = await getProfilePhotoApi(emp.employeeId);
+          const url = URL.createObjectURL(res.data);
+          photoMap[emp.employeeId] = url;
+        } catch {
+          // ignore if no photo
+        }
+      })
+    );
+
+    setPhotos(photoMap);
   };
 
   if (loading) return <div>Loading employees...</div>;
@@ -79,6 +88,7 @@ const Employees = () => {
             <th>Role</th>
           </tr>
         </thead>
+
         <tbody>
           {employees.map((e) => (
             <tr key={e.employeeId}>
@@ -89,7 +99,10 @@ const Employees = () => {
                     alt="profile"
                     width="40"
                     height="40"
-                    style={{ borderRadius: "50%", objectFit: "cover" }}
+                    style={{
+                      borderRadius: "50%",
+                      objectFit: "cover",
+                    }}
                   />
                 ) : (
                   "👤"

@@ -13,6 +13,12 @@ export const getMyProfileApi = () => {
   return http.get("/api/employees/profile");
 };
 
+export const getProfilePhotoApi = (employeeId) => {
+  return http.get(`/api/employees/${employeeId}/profile/photo`, {
+    responseType: "blob",
+  });
+};
+
 export const updateProfilePhotoApi = (base64String) => {
   return http.put("/api/employees/profile/photo", {
     profilePhotoBase64: base64String,
